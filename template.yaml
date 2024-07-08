@@ -1,0 +1,36 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    - uuid: 8ae5c18daf424d468d761684c28a10f3
+      template: 'Reverse SSH by Zabbix agent'
+      name: 'Reverse SSH by Zabbix agent'
+      groups:
+        - name: Templates
+      items:
+        - uuid: 936e811596f841ce8cad1b0037144cb5
+          name: 'Reverse SSH connected client count'
+          key: reverse-ssh.count
+          triggers:
+            - uuid: dcc65019e41b466ebf3ed6cf0f9eddaa
+              expression: |
+                last(/Reverse SSH by Zabbix agent/reverse-ssh.count)<>
+                max(/Reverse SSH by Zabbix agent/reverse-ssh.count,300)
+              name: 'Reverse SSH client count changed'
+              priority: WARNING
+      discovery_rules:
+        - uuid: f3a030e239d44ed98fb9e25039c5b27b
+          name: 'Reverse SSH clients'
+          key: reverse-ssh.discover
+          delay: 1h
+          item_prototypes:
+            - uuid: 9a27edb2866f496f87c48eff9dbeec9a
+              name: 'Reverse SSH client connection status {#REVERSE_SSH_CLIENT}'
+              key: 'reverse-ssh.connected[{#REVERSE_SSH_CLIENT}]'
+              trigger_prototypes:
+                - uuid: 302826490c0740a79578cee87f51dbc6
+                  expression: 'last(/Reverse SSH by Zabbix agent/reverse-ssh.connected[{#REVERSE_SSH_CLIENT}])=0'
+                  name: 'Reverse SSH client disconnected {#REVERSE_SSH_CLIENT}'
+                  priority: WARNING
